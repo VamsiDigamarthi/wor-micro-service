@@ -5,13 +5,11 @@ import jwt from "jsonwebtoken";
 import { getUserAverageRating } from "../comman-apis/common-apis.js";
 import { s3, uploadToS3 } from "../media/digitalOcena.js";
 import {
-  changeDuttyService,
   checkMPinService,
   registerUserService,
   removeOtpService,
   sendOtpService,
   setMPinService,
-  updateCaptainCoordinatesService,
   updateLicenseDetailsService,
   updateRcDetailsService,
   verifyOtpService,
@@ -298,30 +296,6 @@ export const updateFirebaseToken = async (req, res) => {
   }
 };
 
-export const addedNewService = async (req, res) => {
-  const { mobile, serviceType } = req.body || {};
-  logger.info(`ℹ️ new service api hit ${mobile}`);
-  try {
-    const user = await UserModel.findOne({ mobile });
-    if (!user) return sendResponse(res, 404, "User not found");
-    const service = user.services.find((s) => s.serviceType === serviceType);
-    if (service)
-      return sendResponse(res, 400, "This service type already exists");
-
-    if (user.services.length > 0) user.services.pop();
-
-    user.services.push({ serviceType });
-    await user.save();
-    logger.info(`✔️ new service added  ${mobile}`);
-    return sendResponse(res, 200, "Service updated successfully", null, {
-      user,
-    });
-  } catch (error) {
-    logger.error(`❌Failed to update service- ${mobile}`, error);
-    return sendResponse(res, 500, "Failed to update service", error);
-  }
-};
-
 export const rcNumberUpdate = async (req, res) => {
   const { serviceType, rcNumber } = req.body || {};
   const { mobile } = req.params;
@@ -522,35 +496,6 @@ export const checkMyPin = async (req, res) => {
   logger.info(`ℹ️ CHECK M-PIN api hit ${user.mobile}`);
 
   const result = await checkMPinService(user._id, user.mobile, mpin);
-  return sendResponse(res, result.status, result.message, result.error || null);
-};
-
-export const duttyChange = async (req, res) => {
-  const { user } = req;
-  const { latitude, longitude, mpin } = req.body || {};
-  logger.info(`ℹ️ DUTY-CHANGE api hit ${user.mobile}`);
-  const result = await changeDuttyService({
-    latitude,
-    longitude,
-    mpin,
-    mobile: user?.mobile,
-    userId: user?._id,
-    duttyStatus: user?.onDuty,
-    userMpin: user?.mpin,
-  });
-  return sendResponse(res, result.status, result.message, result.error || null);
-};
-
-export const updateCoordinates = async (req, res) => {
-  const { lat, lng } = req.body || {};
-  const { user } = req;
-  logger.info(`ℹ️ CAPTAIN UPDATED COORDINATE  api hit ${user.mobile}`);
-  const result = await updateCaptainCoordinatesService({
-    userId: user._id,
-    mobile: user?.mobile,
-    lat,
-    lng,
-  });
   return sendResponse(res, result.status, result.message, result.error || null);
 };
 

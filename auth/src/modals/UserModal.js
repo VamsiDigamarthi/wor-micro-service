@@ -84,6 +84,9 @@ const userSchema = new Schema({
 
   emergencyContact: { type: [emergencyContactSchema], default: [] },
   bankDetails: { type: [bankDetailsSchema], default: [] },
+  avgRating: { type: Number, required: true, min: 1, max: 5, default: 5 },
+  ratingCount: { type: Number, default: 0 },
+  ratingTotal: { type: Number, default: 0 },
 });
 
 userSchema.index({ captainLocation: "2dsphere" });

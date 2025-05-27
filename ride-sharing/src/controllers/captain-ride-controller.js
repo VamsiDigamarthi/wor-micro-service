@@ -244,11 +244,19 @@ export const middleDrop = async (req, res) => {
   logger.info(`ℹ️MIDDLE DROP ORDER api hit ${mobile}`);
   try {
     const existingOrder = await OrderModal.findById(orderId);
+    if (!existingOrder) return sendResponse(res, 404, "Order not found");
+
     const order = await OrderModal.findOneAndUpdate(
       { _id: orderId },
       { $set: { middleDrop: !existingOrder.middleDrop } },
       { new: true }
     );
+
+    // emit real time service to notify user
+    publishToRedis("order.middle-drop", {
+      order,
+    });
+
     return sendResponse(res, 200, "middle drop request send to partner");
   } catch (error) {
     logger.error(`❌before completeride hit failed ${mobile}: ${error}`, {

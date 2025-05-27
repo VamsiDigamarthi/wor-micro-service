@@ -1,5 +1,5 @@
 import amqp from "amqplib";
-import logger from "./logger.js";
+import logger from "../utils/logger.js";
 
 let connection = null;
 let channel = null;
@@ -39,27 +39,33 @@ export async function publishEvent(routingKey, message) {
   logger.info(`📤 Event published to ${routingKey}`);
 }
 
-// Consume with a named, durable, non-exclusive queue
-export async function consumeEvent(routingKey, callback, queueName) {
+// rabbitmq.js
+export async function consumeEvent({ routingKeys, queueName, callback }) {
   if (!channel) {
     await connectToRabbitMQ();
   }
 
-  await channel.assertQueue(queueName, {
-    durable: true, // Queue survives restarts
-    exclusive: false, // Multiple instances can share this queue
-    autoDelete: false, // Queue won't auto-delete on disconnect
-  });
+  await channel.assertExchange(EXCHANGE_NAME, "direct", { durable: true });
+  await channel.assertQueue(queueName, { durable: true });
 
-  await channel.bindQueue(queueName, EXCHANGE_NAME, routingKey);
+  // Bind all routing keys to the single queue
+  for (const routingKey of routingKeys) {
+    await channel.bindQueue(queueName, EXCHANGE_NAME, routingKey);
+    logger.info(`🔔 Subscribed to ${routingKey} on queue ${queueName}`);
+  }
 
-  channel.consume(queueName, (msg) => {
-    if (msg !== null) {
-      const content = JSON.parse(msg.content.toString());
-      callback(content);
-      channel.ack(msg); // Acknowledge message (so it won't be re-queued)
-    }
-  });
+  await channel.consume(
+    queueName,
+    async (msg) => {
+      if (msg !== null) {
+        const routingKey = msg.fields.routingKey;
+        const content = JSON.parse(msg.content.toString());
 
-  logger.info(`🔔 Subscribed to ${routingKey} on queue ${queueName}`);
+        await callback(content, routingKey);
+
+        channel.ack(msg);
+      }
+    },
+    { noAck: false }
+  );
 }

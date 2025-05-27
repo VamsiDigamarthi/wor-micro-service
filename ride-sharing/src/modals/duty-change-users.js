@@ -14,6 +14,7 @@ const OnDutyCaptainSchema = new Schema({
     type: { type: String, enum: ["Point"] },
     coordinates: { type: [Number] },
   },
+  activeService: { type: String, default: null },
   updatedAt: { type: Date, default: Date.now },
 });
 

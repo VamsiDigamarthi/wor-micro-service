@@ -40,8 +40,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("ride-live-communication", ({ orderId, userType }) => {
-    console.log("-----------------");
-
     if (!rideLiveCommunication.has(orderId)) {
       rideLiveCommunication.set(orderId, new Map());
     }
