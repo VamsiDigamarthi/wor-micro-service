@@ -2,22 +2,17 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import "dotenv/config";
-import logger from "./utils/logger.js";
-import errorHandler from "./middlewares/errorHandler.js";
-import AuthRoute from "./routes/auth-route.js";
 import mongoose from "mongoose";
-import { listenToRideEvents } from "./redis/redisEvents.js";
-import bodyParser from "body-parser";
-import { pubClient } from "./redis/redisClient.js";
-import { connectToRabbitMQ } from "./rabbitmq/rabbitmq.js";
-import { setupRabbitMQConsumers } from "./rabbitmq/rabbitmq-consumer.js";
+import Redis from "ioredis";
+import errorHandler from "./middlewares/errorHandler.js";
+import RatingRoute from "./routes/rating-route.js";
+import logger from "./utils/logger.js";
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3007;
 
 app.use(helmet());
-app.use(bodyParser.json({ limit: "30mb", extended: true }));
-app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
+app.use(express.json());
 app.use(cors());
 
 // app.use((req, res, next) => {
@@ -30,30 +25,20 @@ app.use(errorHandler);
 
 mongoose
   .connect(process.env.MONGODB_URL)
-  .then(() => {
-    listenToRideEvents();
-    logger.info("Connected to mongodb");
-  })
+  .then(() => logger.info("Connected to mongodb"))
   .catch((e) => logger.error("Mongo connection error", e));
 
-app.use(
-  "/api/auth",
-  (req, res, next) => {
-    req.redisClient = pubClient;
-    next();
-  },
-  AuthRoute
-);
+app.use("/api/rating", RatingRoute);
 
 function startHTTPServer() {
   app.listen(PORT, () => {
-    logger.info(`Auth Service is running on port ${PORT}`);
+    logger.info(`Rating-Review Service is running on port ${PORT}`);
   });
 }
 
 async function startServer() {
   try {
-    await setupRabbitMQConsumers();
+    // await setupRabbitMQConsumers();
     startHTTPServer();
   } catch (error) {
     logger.error("Failed to start the server", error);

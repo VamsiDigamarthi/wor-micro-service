@@ -8,11 +8,7 @@ import Redis from "ioredis";
 import OrderRoute from "./routes/ride-route.js";
 import logger from "./utils/logger.js";
 import errorHandler from "./middlewares/errorHandler.js";
-import { connectToRabbitMQ, consumeEvent } from "./rabbitmq/rabbitmq.js";
-import {
-  handleOffdutyCaptains,
-  handleOndutyCaptains,
-} from "./event-handlers/ride-event-handler.js";
+
 import { setupRabbitMQConsumers } from "./rabbitmq/rabbitmq-consumers.js";
 
 const app = express();

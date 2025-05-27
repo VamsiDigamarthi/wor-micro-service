@@ -83,3 +83,14 @@ export const handleOrderCompleted = async ({ orderId }) => {
   const userSocket = getUserSocketId(orderId, "user");
   if (userSocket) io.to(userSocket).emit("order-completed");
 };
+
+export const handleOrderMiddledropNotifyToUser = async ({ order }) => {
+  logger.info(`📥 Event: order.middle-drop | Order ID: ${order?._id}`);
+
+  const userSocket = getUserSocketId(order?._id, "user");
+  if (userSocket)
+    io.to(userSocket).emit("middle-drop", {
+      status: true,
+      order,
+    });
+};

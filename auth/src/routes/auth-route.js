@@ -11,7 +11,6 @@ import {
   editProfileData,
   onAadharCardVerification,
   updateFirebaseToken,
-  addedNewService,
   rcNumberUpdate,
   addedNewServices,
   vehicleImageUpload,
@@ -23,8 +22,6 @@ import {
   changeRole,
   setMPin,
   checkMyPin,
-  duttyChange,
-  updateCoordinates,
   addEmergencyContact,
   getEmergencyContact,
   deleteEmergencyContact,
@@ -38,7 +35,10 @@ import { authenticateRequest } from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/fileUpload.js";
 import { handleMulterUpload } from "../media/handleMulterUpload.js";
 import {
+  addedNewService,
+  duttyChange,
   getWidarwRequest,
+  updateCoordinates,
   widthdrawRequestPay,
   withdrawRequest,
 } from "../controllers/captain-auth-controller.js";

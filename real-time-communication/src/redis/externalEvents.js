@@ -3,6 +3,7 @@ import {
   handleCaptainAcceptOrder,
   handleCaptainArrived,
   handleOrderCompleted,
+  handleOrderMiddledropNotifyToUser,
   handleOrderOtpVerified,
   handleSharedToCaptain,
   handleSomeOneAcceptOrder,
@@ -34,6 +35,10 @@ export const sendNotifyToCaptainForNewOrder = () => {
     {
       channel: "order.completed",
       handler: handleOrderCompleted,
+    },
+    {
+      channel: "order.middle-drop",
+      handler: handleOrderMiddledropNotifyToUser,
     },
   ];
 

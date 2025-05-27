@@ -123,6 +123,28 @@ app.use(
   })
 );
 
+// rating service
+app.use(
+  "/v1/rating",
+  allServiceAuthMiddleWare,
+  proxy(process.env.RATING_SERVICE_URL, {
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      if (srcReq.user) {
+        proxyReqOpts.headers["x-user-number"] = srcReq.user.mobile;
+        proxyReqOpts.headers["x-user-id"] = srcReq.user.id;
+      }
+      return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+      logger.info(
+        `Response received from Auth service: ${proxyRes.statusCode}`
+      );
+      return proxyResData;
+    },
+  })
+);
+
 app.listen(PORT, () => {
   logger.info(`API Gateway is running on port ${PORT}`);
 });

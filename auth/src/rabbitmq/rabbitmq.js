@@ -39,18 +39,19 @@ export async function publishEvent(routingKey, message) {
   logger.info(`📤 Event published to ${routingKey}`);
 }
 
-// rabbitmq.js
+// Consume with a named, durable, non-exclusive queue
+
 export async function consumeEvent({ routingKeys, queueName, callback }) {
   if (!channel) {
     await connectToRabbitMQ();
   }
-
-  await channel.assertExchange(EXCHANGE_NAME, "direct", { durable: true });
+  const exchange = "captain-events"; // Replace with your actual exchange
+  await channel.assertExchange(exchange, "direct", { durable: true });
   await channel.assertQueue(queueName, { durable: true });
 
   // Bind all routing keys to the single queue
   for (const routingKey of routingKeys) {
-    await channel.bindQueue(queueName, EXCHANGE_NAME, routingKey);
+    await channel.bindQueue(queueName, exchange, routingKey);
     logger.info(`🔔 Subscribed to ${routingKey} on queue ${queueName}`);
   }
 
