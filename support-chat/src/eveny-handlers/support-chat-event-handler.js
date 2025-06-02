@@ -1,6 +1,21 @@
 import SupportChatModel from "../modal/SupportChatModal.js";
+import logger from "../utils/logger.js";
 
-export const createSupportChat = async (event) => {
+export const supportChatEventHandler = async (event, routingKey) => {
+  try {
+    switch (routingKey) {
+      case "support.chatcreate":
+        return await addedEachOrderratingSum(event);
+
+      default:
+        logger.warn(`⚠️ Unknown routing key: ${routingKey}`);
+    }
+  } catch (error) {
+    logger.error(`❌ Error handling ${routingKey}:`, err);
+  }
+};
+
+export const addedEachOrderratingSum = async (event) => {
   console.log(event, "eventevent");
   const { userId, adminUserId } = event;
   try {

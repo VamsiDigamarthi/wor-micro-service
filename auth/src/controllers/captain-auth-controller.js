@@ -80,6 +80,7 @@ export const duttyChange = async (req, res) => {
     duttyStatus: user?.onDuty,
     userMpin: user?.mpin,
     activeService: user?.activeService,
+    fbToken: user?.fbtoken,
   });
   return sendResponse(res, result.status, result.message, result.error || null);
 };

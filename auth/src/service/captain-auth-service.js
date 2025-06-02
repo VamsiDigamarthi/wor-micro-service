@@ -86,6 +86,7 @@ export const changeDuttyService = async ({
   duttyStatus,
   userMpin,
   activeService,
+  fbToken,
 }) => {
   try {
     if (latitude && longitude && mpin) {
@@ -118,6 +119,7 @@ export const changeDuttyService = async ({
           longitude: parseFloat(longitude),
         },
         activeService,
+        fbToken,
       });
 
       return {

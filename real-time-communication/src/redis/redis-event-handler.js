@@ -1,24 +1,19 @@
-import { captainIds, io, rideLiveCommunication } from "../server.js";
+import {
+  middleDropNotification,
+  rideArrivedNotification,
+  rideCompletedNotification,
+  rideOtpVerifiedNotification,
+} from "../../../notification/send-notification/socket-notifications.js";
+import { io } from "../server.js";
 import {
   sendNotfSomeOneAcceptOrder,
   sendRealTimeOrders,
 } from "../socket/send-event.js";
+import {
+  getCaptainSocketInfo,
+  getUserSocketId,
+} from "../utils/filter-socket-ids.js";
 import logger from "../utils/logger.js";
-
-const getCaptainSocketInfo = (captains) => {
-  return captains.reduce(
-    (acc, user) => {
-      const socketId = captainIds.get(user?.captainId?.toString());
-      if (socketId) {
-        acc.socketIds.push(socketId);
-      } else {
-        acc.notConnectedCaptains.push(user);
-      }
-      return acc;
-    },
-    { socketIds: [], notConnectedCaptains: [] }
-  );
-};
 
 export const handleSharedToCaptain = async ({ order, captains }) => {
   logger.info(
@@ -48,49 +43,55 @@ export const handleSomeOneAcceptOrder = async ({ orderId, captains }) => {
   await sendNotfSomeOneAcceptOrder({ orderId, socketIds });
 };
 
-const getUserSocketId = (orderId, userType) => {
-  return rideLiveCommunication.get(orderId)?.get(userType)?.socketId || null;
-};
-
 export const handleCaptainAcceptOrder = async ({ order }) => {
   logger.info(`📥 Event: order.captainAcceptOrder | Order ID: ${order?._id}`);
 
   const userSocket = getUserSocketId(order?._id, "user");
-  if (userSocket) io.to(userSocket).emit("order-accept", order);
+
+  userSocket
+    ? io.to(userSocket).emit("order-accept", order)
+    : rideAcceptNotification(order);
 };
 
-export const handleCaptainArrived = async ({ orderId }) => {
-  logger.info(`📥 Event: order.captainIsarrived | Order ID: ${orderId}`);
+export const handleCaptainArrived = async ({ order }) => {
+  logger.info(`📥 Event: order.captainIsarrived | Order ID: ${order?._id}`);
 
-  const userSocket = getUserSocketId(orderId, "user");
-  if (userSocket) io.to(userSocket).emit("order-arrived", true);
+  const userSocket = getUserSocketId(order?._id, "user");
+  userSocket
+    ? io.to(userSocket).emit("order-arrived", true)
+    : rideArrivedNotification(order);
 };
 
 export const handleOrderOtpVerified = async ({ order }) => {
   logger.info(`📥 Event: order.otpVerified | Order ID: ${order?._id}`);
 
   const userSocket = getUserSocketId(order?._id, "user");
-  if (userSocket)
-    io.to(userSocket).emit("order-otp-verified", {
-      status: true,
-      order,
-    });
+
+  userSocket
+    ? io.to(userSocket).emit("order-otp-verified", {
+        status: true,
+        order,
+      })
+    : rideOtpVerifiedNotification(order);
 };
 
-export const handleOrderCompleted = async ({ orderId }) => {
-  logger.info(`📥 Event: order.completed | Order ID: ${orderId}`);
+export const handleOrderCompleted = async ({ order }) => {
+  logger.info(`📥 Event: order.completed | Order ID: ${order?._id}`);
 
-  const userSocket = getUserSocketId(orderId, "user");
-  if (userSocket) io.to(userSocket).emit("order-completed");
+  const userSocket = getUserSocketId(order?._id, "user");
+  userSocket
+    ? io.to(userSocket).emit("order-completed")
+    : rideCompletedNotification(order);
 };
 
 export const handleOrderMiddledropNotifyToUser = async ({ order }) => {
   logger.info(`📥 Event: order.middle-drop | Order ID: ${order?._id}`);
 
   const userSocket = getUserSocketId(order?._id, "user");
-  if (userSocket)
-    io.to(userSocket).emit("middle-drop", {
-      status: true,
-      order,
-    });
+  userSocket
+    ? io.to(userSocket).emit("middle-drop", {
+        status: true,
+        order,
+      })
+    : middleDropNotification(order);
 };

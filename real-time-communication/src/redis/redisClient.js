@@ -2,6 +2,8 @@ import Redis from "ioredis";
 import "dotenv/config";
 import logger from "../utils/logger.js";
 
+export const redisClient = new Redis(process.env.REDIS_URL);
+
 // Redis clients for Socket.IO adapter
 export const pubClient = new Redis(process.env.REDIS_URL);
 export const subClient = pubClient.duplicate();

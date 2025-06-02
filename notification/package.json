@@ -1,9 +1,17 @@
 {
+  "main": "notification.js",
+  "type": "module",
+  "scripts": {
+    "start": "node notification.js",
+    "dev": "nodemon notification.js"
+  },
   "dependencies": {
     "amqplib": "^0.10.8",
     "dotenv": "^16.5.0",
     "firebase-admin": "^13.4.0",
     "ioredis": "^5.6.1",
+    "mongoose": "^8.15.1",
+    "nodemon": "^3.1.10",
     "winston": "^3.17.0"
   }
 }

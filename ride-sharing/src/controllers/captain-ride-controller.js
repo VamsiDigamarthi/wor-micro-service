@@ -71,7 +71,7 @@ export const acceptOrder = async (req, res) => {
     if (!updatedOrder) return sendResponse(res, 404, "Order not found");
 
     const captains = await fetchCaptains();
-    // notify remainig captains some one accept the then remove this ride from order list
+    // notify remainig captains some one accept the then remove this ride from order list in real time communication service
     publishToRedis("order.someOneAcceptOrder", {
       captains,
       orderId: updatedOrder?._id,
@@ -143,7 +143,7 @@ export const orderCompleted = async (req, res) => {
     if (!updatedOrder) return sendResponse(res, 404, "Order not found");
 
     publishToRedis("order.completed", {
-      orderId: updatedOrder?._id,
+      order: updatedOrder,
     });
 
     logger.info(`ℹ️ORDER OTP VERIFICATION SUCCESSFULLY ${mobile}`);
@@ -249,8 +249,21 @@ export const middleDrop = async (req, res) => {
     const order = await OrderModal.findOneAndUpdate(
       { _id: orderId },
       { $set: { middleDrop: !existingOrder.middleDrop } },
-      { new: true }
-    );
+      {
+        new: true,
+        select:
+          "-attempts -createdAt -__v -favorite -rejectedCaptaine -saved -sendReceiverData -updatedAt -userAuthenticationImage",
+      }
+    )
+      .populate({
+        path: "head",
+        select: "name mobile email profilePic",
+      })
+      .populate({
+        path: "acceptCaptain",
+        select:
+          "name email mobile rcCardDetails activeService services  profilePic languages", //
+      });
 
     // emit real time service to notify user
     publishToRedis("order.middle-drop", {
@@ -294,12 +307,25 @@ export const captainArrived = async (req, res) => {
     const updatedOrder = await OrderModal.findOneAndUpdate(
       { _id: orderId, acceptCaptain: userId },
       { $set: { isArrived: true } },
-      { new: true }
-    );
+      {
+        new: true,
+        select:
+          "-attempts -createdAt -__v -favorite -rejectedCaptaine -saved -sendReceiverData -updatedAt -userAuthenticationImage",
+      }
+    )
+      .populate({
+        path: "head",
+        select: "name mobile email profilePic",
+      })
+      .populate({
+        path: "acceptCaptain",
+        select:
+          "name email mobile rcCardDetails activeService services  profilePic languages", //
+      });
 
     // send event to real time service to notify user captain is arrived
     publishToRedis("order.captainIsarrived", {
-      orderId: updatedOrder?._id,
+      order: updatedOrder,
     });
 
     return sendResponse(res, 200, "Captain arrived successfully", null, {

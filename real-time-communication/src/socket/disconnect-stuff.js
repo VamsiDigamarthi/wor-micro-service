@@ -1,35 +1,41 @@
-import {
-  captainIds,
-  socketIdToCaptainId,
-  socketIdToOrderUserType,
-} from "../server.js";
+import { redisClient } from "../redis/redisClient.js";
 import logger from "../utils/logger.js";
 
-export const handleCaptainDisconnect = (socket) => {
-  return () => {
-    logger.info(`🔴 Socket disconnected: ${socket.id}`);
+export const handleSocketDisconnect = async (socketId) => {
+  logger.info(`🔴 Socket disconnected: ${socketId}`);
 
-    const captainId = socketIdToCaptainId.get(socket.id);
+  try {
+    // Find captainId by socketId
+    const captainId = await redisClient.hget("socketIdToCaptainId", socketId);
     if (captainId) {
-      captainIds.delete(captainId);
-      socketIdToCaptainId.delete(socket.id);
-      logger.info(`🗑️ Removed Captain ID: ${captainId} from tracking`);
-      console.log("----------", captainIds);
+      // Remove captainId -> socketId mapping
+      await redisClient.hdel("captainIds", captainId);
+      // Remove socketId -> captainId mapping
+      await redisClient.hdel("socketIdToCaptainId", socketId);
+      logger.info(`🗑️ Removed Captain ID: ${captainId} from Redis`);
     }
 
-    // Remove from rideLiveCommunication using reverse lookup
-    const info = socketIdToOrderUserType.get(socket.id);
-    if (info) {
-      const { orderId, userType } = info;
-      const userTypeMap = rideLiveCommunication.get(orderId);
-      if (userTypeMap) {
-        userTypeMap.delete(userType);
-        if (userTypeMap.size === 0) {
-          rideLiveCommunication.delete(orderId);
-        }
+    // Get rideLiveCommunication info for this socket
+    const infoStr = await redisClient.hget("socketIdToOrderUserType", socketId);
+    if (infoStr) {
+      const { orderId, userType } = JSON.parse(infoStr);
+      const key = `rideLiveCommunication:${orderId}`;
+
+      // Remove userType from rideLiveCommunication hash for the orderId
+      await redisClient.hdel(key, userType);
+
+      // Check if the rideLiveCommunication hash is empty, delete it if yes
+      const remaining = await redisClient.hlen(key);
+      if (remaining === 0) {
+        await redisClient.del(key);
       }
-      socketIdToOrderUserType.delete(socket.id);
-      logger.info(`🗑️ Cleaned rideLiveCommunication for socket ${socket.id}`);
+
+      // Remove reverse lookup socketId entry
+      await redisClient.hdel("socketIdToOrderUserType", socketId);
+
+      logger.info(`🗑️ Cleaned rideLiveCommunication for socket ${socketId}`);
     }
-  };
+  } catch (err) {
+    logger.error("Error handling disconnect:", err);
+  }
 };
