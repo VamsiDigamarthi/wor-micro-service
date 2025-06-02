@@ -85,7 +85,7 @@ export const getAllPendingOrderByDistance = async ({
 export const checkActiveOrder = async (userId) => {
   return await OrderModal.findOne(
     { acceptCaptain: userId, status: "accept" },
-    { _id: 1 } // Only check existence
+    { _id: 1 }
   );
 };
 
@@ -115,8 +115,22 @@ export const updateAndFetchPopulatedOrder = async ({
         distanceFromCaptainToPickUp: Number(distanceFromCaptainToPickUp),
         captainMobile: mobile,
       },
+    },
+    {
+      new: true,
+      select:
+        "-attempts -createdAt -__v -favorite -rejectedCaptaine -saved -sendReceiverData -updatedAt -userAuthenticationImage",
     }
-  );
+  )
+    .populate({
+      path: "head",
+      select: "name mobile email profilePic",
+    })
+    .populate({
+      path: "acceptCaptain",
+      select:
+        "name email mobile rcCardDetails activeService services  profilePic languages", //
+    });
 
   return await getPopulatedOrderById(orderId);
 };
@@ -221,8 +235,19 @@ export const orderVerifiedOtpService = async ({
     },
     {
       new: true,
+      select:
+        "-attempts -createdAt -__v -favorite -rejectedCaptaine -saved -sendReceiverData -updatedAt -userAuthenticationImage",
     }
-  );
+  )
+    .populate({
+      path: "head",
+      select: "name mobile email profilePic",
+    })
+    .populate({
+      path: "acceptCaptain",
+      select:
+        "name email mobile rcCardDetails activeService services  profilePic languages", //
+    });
 
   return await getPopulatedOrderById(orderId);
 };
@@ -237,8 +262,19 @@ export const orderCompletedService = async ({ orderId }) => {
     },
     {
       new: true,
+      select:
+        "-attempts -createdAt -__v -favorite -rejectedCaptaine -saved -sendReceiverData -updatedAt -userAuthenticationImage",
     }
-  );
+  )
+    .populate({
+      path: "head",
+      select: "name mobile email profilePic",
+    })
+    .populate({
+      path: "acceptCaptain",
+      select:
+        "name email mobile rcCardDetails activeService services  profilePic languages", //
+    });
   return await getPopulatedOrderById(orderId);
 };
 

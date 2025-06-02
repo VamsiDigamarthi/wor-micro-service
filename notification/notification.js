@@ -1,12 +1,14 @@
-import { newOrderCreate } from "./event-handler.js";
-import { connectToRabbitMQ, consumeEvent } from "./rabbitmq.js";
+import "dotenv/config";
+import { connectToMongoDB } from "./db.js";
+import { setupRabbitMQConsumers } from "./rabbitmq/rabbitmq-consumers.js";
 import logger from "./utils/logger.js";
 
 const startNotificationService = async () => {
   logger.info("🚀 Notification Service started");
 
-  await connectToRabbitMQ();
-  await consumeEvent("new-order-create", newOrderCreate);
+  await connectToMongoDB();
+
+  await setupRabbitMQConsumers();
 };
 
 startNotificationService();

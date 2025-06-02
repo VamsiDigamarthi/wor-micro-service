@@ -19,6 +19,7 @@ import {
   removeCacheByKey,
   setCachedHomePlaces,
 } from "../redis/redisCache.js";
+import { publishEvent } from "../rabbitmq/rabbitmq.js";
 
 export const sendOtp = async (req, res) => {
   logger.info("Send OTP endpoint hit");
@@ -288,6 +289,13 @@ export const updateFirebaseToken = async (req, res) => {
       { new: true }
     );
 
+    // publish the event to store fbtoken in "NOTIFICATION SERVICE"
+    await publishEvent("fbToken.storeFbToken", {
+      userId: user._id,
+      mobile: user?.mobile,
+      fbToken: fbtoken,
+    });
+
     logger.info(`➡️ Firebase token update Successfully ${user.mobile}`);
     return sendResponse(res, 200, "token updated successfully...!");
   } catch (error) {
@@ -539,7 +547,7 @@ export const getEmergencyContact = async (req, res) => {
   try {
     const cachedData = await getCachedHomePlaces(req.redisClient, redisKey);
     if (cachedData) {
-      logger.info(`ℹ️ [GET Home Place] Cache hit for ${user.mobile}`);
+      logger.info(`ℹ️ [GET EMERGENCY CONTACT] Cache hit for ${user.mobile}`);
       return res.status(200).json(cachedData ?? null);
     }
 

@@ -1,5 +1,6 @@
 import { io } from "../server.js";
 import logger from "../utils/logger.js";
+
 export const sendRealTimeOrders = async ({ socketIds, order }) => {
   socketIds?.forEach((socketId) => {
     io.to(socketId).emit("new-order", order);

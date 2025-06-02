@@ -8,13 +8,13 @@ const OnDutyCaptainSchema = new Schema({
     required: true,
     unique: true,
   },
-  fbtoken: { type: String },
   mobile: { type: String },
   location: {
     type: { type: String, enum: ["Point"] },
     coordinates: { type: [Number] },
   },
   activeService: { type: String, default: null },
+  fbToken: { type: String, default: null },
   updatedAt: { type: Date, default: Date.now },
 });
 

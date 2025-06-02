@@ -19,8 +19,8 @@ export async function unifiedHandler(event, routingKey) {
 }
 
 const handleOndutyCaptains = async (event) => {
-  const { captainId, mobile, location, activeService } = event;
-  console.log("activeService", activeService);
+  const { captainId, mobile, location, activeService, fbToken } = event;
+  console.log("fbToken", fbToken);
 
   if (!location || !location.latitude || !location.longitude) {
     logger.error("❌ Invalid location received", { data });
@@ -48,6 +48,7 @@ const handleOndutyCaptains = async (event) => {
         ],
       },
       activeService,
+      fbToken,
     });
     logger.info(`✅ Captain ${mobile} added to on-duty list`);
   } catch (error) {
